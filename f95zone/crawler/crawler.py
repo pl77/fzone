@@ -76,6 +76,28 @@ class Crawler(object):
                     content.append(temp)
         return content
 
+    def add_watched_games(self, game_list):
+        if not self.logged_in:
+            assert self.login()
+        content = list()
+        payload = dict(_xfWithData=1,
+                       _xfResponseType="json")
+        for url in game_list:
+            url_req = f"{url}watch"
+            url_stub = url[18:]
+            payload['_xfRequestUri'] = url_stub
+            page: Crawler.response_type = self.session.get(url_req, data=payload)
+            _xftoken: list = page.html.find('input[name="_xfToken"]')
+            if _xftoken:
+                _xftoken: requests_html.Element = _xftoken[0]
+                _xftoken: str = _xftoken.attrs['value']
+            payload['email_subscribe'] = 0
+            payload['_xfToken'] = _xftoken
+            page: Crawler.response_type = self.session.post(url_req, data=payload)
+            if page.status_code == 200:
+                content.append(url)
+        return len(content)
+
     def dump(self) -> bool:
         content = self.get_watched_games()
         with open(str(self.paths.cache / 'watchlist'), 'w') as file:

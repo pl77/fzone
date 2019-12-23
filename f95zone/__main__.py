@@ -1,5 +1,7 @@
 import getpass
 import argparse
+import os
+import pathlib
 
 
 from f95zone.paths.pathmeta import PathMeta
@@ -14,6 +16,25 @@ if __name__ == '__main__':
     watchlist = paths.cache / 'watchlist'
     data_store = paths.cache / 'data0.pickle'
 
+    argp.add_argument(
+        '-w',
+        '--watchlist',
+        dest='watchlist',
+        help='add games to watchlist, text file with one URL per line',
+    )
+
+    argp.add_argument(
+        '-n',
+        '--username',
+        dest='username',
+        help='f95zone username',
+    )
+    argp.add_argument(
+        '-p',
+        '--password',
+        dest='password',
+        help='f95zone password',
+    )
     argp.add_argument(
         '-f',
         '--force',
@@ -38,11 +59,37 @@ if __name__ == '__main__':
         default=False,
         help='export data to json file'
     )
-    args = argp.parse_args('-e'.split())
+    args = argp.parse_args()
+
+    def add_watchlist(game_list):
+        watchgames = list()
+        with open(game_list, 'r') as glist:
+            ulist = glist.readlines()
+            for line in ulist:
+                line = line.strip()
+                watchgames.append(line)
+        if args.username:
+            username = args.username
+        else:
+            username = input("Enter username: ")
+        if args.password:
+            password = args.password
+        else:
+            password = getpass.getpass("Enter password: ")
+        crawler = Crawler(username, password)
+        status = crawler.add_watched_games(watchgames)
+        print(f"Added {status} games to watchlist")
+
 
     def generate_watchlist():
-        username = input("Enter username: ")
-        password = getpass.getpass("Enter password: ")
+        if args.username:
+            username = args.username
+        else:
+            username = input("Enter username: ")
+        if args.password:
+            password = args.password
+        else:
+            password = getpass.getpass("Enter password: ")
         crawler = Crawler(username, password)
         status: bool = crawler.dump()
         if status:
@@ -65,6 +112,9 @@ if __name__ == '__main__':
         Cache().export_to_json()
 
     def main():
+        if args.watchlist:
+            game_list = args.watchlist
+            add_watchlist(game_list)
         if args.update:
             generate_watchlist()
         if args.force:
