@@ -14,13 +14,20 @@ class Loader(object):
         self.paths = PathMeta()
 
     def read(self):
-        with open(self.paths.cache / 'data0.pickle',  'rb') as file:
+        picklepath = self.paths.cache / 'data0.pickle'
+        if not picklepath.exists():
+            with open(self.paths.cache / 'data0.pickle', 'wb'):
+                pass
+        with open(str(picklepath),  'rb') as file:
             content = file.read()
         return content
 
     def parse(self):
         content = self.read()
-        content = pickle.loads(content)
+        try:
+            content = pickle.loads(content)
+        except EOFError:
+            content = {}
         return content
 
     @property

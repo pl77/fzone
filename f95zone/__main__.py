@@ -95,7 +95,15 @@ if __name__ == '__main__':
 
     def dump_data():
         cache = Cache()
-        status = cache.dump(json_format=True)
+        if args.username:
+            username = args.username
+        else:
+            username = input("Enter username: ")
+        if args.password:
+            password = args.password
+        else:
+            password = getpass.getpass("Enter password: ")
+        status = cache.dump(username, password, json_format=True)
         if status:
             print("Data cached")
 

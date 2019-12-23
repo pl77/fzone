@@ -8,7 +8,10 @@ class PathMeta(object):
     """
     def __init__(self):
         self.package_root = pathlib.Path(__file__).parent.parent
-        self.home = pathlib.Path(os.environ['HOME'])
+        try:
+            self.home = pathlib.Path(os.environ['HOME'])
+        except KeyError:  # likely Windows-based system
+            self.home = pathlib.Path(os.environ['HOMEDRIVE'], os.environ['HOMEPATH'])
         self._cache = self.home / '.cache' / 'f95zone'
         self.watchlist = self._cache / 'watchlist'
 

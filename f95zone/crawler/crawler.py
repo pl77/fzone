@@ -76,6 +76,54 @@ class Crawler(object):
                     content.append(temp)
         return content
 
+    def get_game_data(self, url: str) -> dict:
+        if not self.logged_in:
+            assert self.login()
+        response: Crawler.response_type = self.session.get(url)
+        title: list = response.html.find('h1.p-title-value')
+        if title:
+            title: requests_html.Element = title[0]
+            title: str = title.text
+            title: str = title.replace(u'\xa0', u' ')
+        tags: list = response.html.find('a.tagItem')
+        if tags:
+            temp = list()
+            for item in tags:
+                item: requests_html.Element
+                temp.append(item.text)
+            tags = temp
+            del temp
+        overview: list = response.html.find('div.bbWrapper')
+        external_links: list = list()
+        internal_links: list = list()
+        images: list = list()
+        if overview:
+            overview: requests_html.Element = overview[0]
+            article: list = overview.find('div[style="text-align: center"]')
+            for idx, chunk in enumerate(article):
+                if chunk.text.strip().lower().startswith('download'):
+                    chunk = article.pop(idx)
+                    links = chunk.find('a')
+                    for link in links:
+                        if "link--external" in link.attrs['class']:
+                            external_links.append((link.text, link.attrs['href']))
+                        elif "link--internal" in link.attrs['class']:
+                            internal_links.append((link.text, link.attrs['href']))
+                        elif "js-lbImage" in link.attrs['class']:
+                            images.append(link.attrs['href'])
+            overview: str = "\n".join([a.text for a in article])
+            overview: str = overview.replace(u'\u200b', '')
+        data = {
+            'title': title,
+            'tags': tags,
+            'overview': overview,
+            'external_links': external_links,
+            'internal_links': internal_links,
+            'images': images,
+            'url': url
+        }
+        return data
+
     def add_watched_games(self, game_list):
         if not self.logged_in:
             assert self.login()
