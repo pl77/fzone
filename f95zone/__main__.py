@@ -1,7 +1,5 @@
 import getpass
 import argparse
-import os
-import pathlib
 
 
 from f95zone.paths.pathmeta import PathMeta
