@@ -21,7 +21,7 @@ class Cache(object):
     def generate_cache(self) -> list:
         novels = []
         watchlist = WatchlistParser(str(self.paths.watchlist)).watchlist
-        for url in watchlist[:5]:
+        for url in watchlist:
             raw_data: dict = self.crawler.get_game_data(url)
             title: dict = TitleParser(raw_data['title']).title
             # overview: str = OverviewParser(raw_data['overview']).overview  # (disabled until fix is issued)'None'  #
